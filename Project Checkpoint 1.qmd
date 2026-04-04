@@ -39,3 +39,5 @@ The data has been cleaned mostly by renaming variables to be more understandable
 -   Do economic conditions (e.g., GDP per capita, inflation) predict transitions from democracy to dictatorship?
 
 [Sketch out two visualizations that could be made to address the research questions you posed above]{.underline}:
+
+See Canvas Submission
