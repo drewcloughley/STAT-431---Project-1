@@ -4,6 +4,9 @@ format: html
 ---
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 24cd85f (Filtered out non-countries and also added a continent variable for future analysis)
 ## Context
 
 ```{r}
@@ -46,12 +49,19 @@ The data has been cleaned mostly by renaming variables to be more understandable
 
 -   Do economic conditions (e.g., GDP per capita, inflation) predict transitions from democracy to dictatorship?
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 24cd85f (Filtered out non-countries and also added a continent variable for future analysis)
 
 
 ## Assigning Continent names to each country and filtering out non-countries
 
 ```{r}
+<<<<<<< HEAD
 democracy_data <- democracy_data |> 
+=======
+democracy_data <- democracy_data %>%
+>>>>>>> 24cd85f (Filtered out non-countries and also added a continent variable for future analysis)
   mutate(
     continent = case_when(
       
@@ -104,6 +114,7 @@ democracy_data <- democracy_data |>
   filter(!is.na(continent))
 ```
 
+<<<<<<< HEAD
 ## Communist countries by Continent
 
 ```{r}
@@ -134,3 +145,7 @@ ggplot(communist_summary, aes(x = continent, y = total_communist_countries, fill
 
 =======
 >>>>>>> 813adf5 (Transferred context into Checkpoint 2)
+=======
+
+
+>>>>>>> 24cd85f (Filtered out non-countries and also added a continent variable for future analysis)
