@@ -1,0 +1,128 @@
+---
+title: "Project Checkpoint 2"
+format: html
+---
+
+## Context
+
+```{r}
+library(tidyverse)
+library(kableExtra)
+
+democracy_data <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-11-05/democracy_data.csv')
+
+
+str(democracy_data)
+```
+
+[Describe the context of the data]{.underline}:\
+
+The data focuses on
+
+-   Whether a country is a democracy or non-democracy
+
+-   Transitions between regimes
+
+-   Political institutions and leadership during regime changes
+
+[Explains what cleaning has been done to the data]{.underline}:
+
+The data has been cleaned mostly by renaming variables to be more understandable. As well as that, the data has been organized into an easily usable format by structuring in country-year observations.
+
+[Pose **at least two** research questions that could be addressed with these data]{.underline}:
+
+-   How many countries transitioned from democracy to non-democracy between 1950 and 2020?
+
+-   What proportion of countries that became non-democratic eventually returned to democracy?
+
+[Pose **at least two** research questions that could be addressed using supplemental data]{.underline}:
+
+-   Are democracies more likely to collapse in regions with higher conflict or instability?
+
+-   Do economic conditions (e.g., GDP per capita, inflation) predict transitions from democracy to dictatorship?
+
+
+## Assigning Continent names to each country and filtering out non-countries
+
+```{r}
+democracy_data <- democracy_data |> 
+  mutate(
+    continent = case_when(
+      
+      country_code %in% c(
+        "DZA","AGO","BEN","BWA","BFA","BDI","CMR","CPV","CAF","TCD","COM","COG","COD",
+        "CIV","DJI","EGY","GNQ","ERI","SWZ","ETH","GAB","GMB","GHA","GIN","GNB","KEN",
+        "LSO","LBR","LBY","MDG","MWI","MLI","MRT","MUS","MAR","MOZ","NAM","NER","NGA",
+        "RWA","STP","SEN","SYC","SLE","SOM","ZAF","SSD","SDN","TZA","TGO","TUN","UGA",
+        "ZMB","ZWE","ZAR"
+      ) ~ "Africa",
+
+      # North America (incl. Caribbean)
+      country_code %in% c(
+        "CAN","USA","MEX","BHS","BRB","CUB","DMA","DOM","GRD","HTI","JAM",
+        "KNA","LCA","VCT","TTO","ATG"
+      ) ~ "North America",
+
+      # Central America
+      country_code %in% c(
+        "BLZ","CRI","SLV","GTM","HND","NIC","PAN"
+      ) ~ "Central America",
+
+      # South America
+      country_code %in% c(
+        "ARG","BOL","BRA","CHL","COL","ECU","GUY","PRY","PER","SUR","URY","VEN"
+      ) ~ "South America",
+
+      country_code %in% c(
+        "AFG","ARM","AZE","BHR","BGD","BTN","BRN","KHM","CHN","CYP","GEO","IND","IDN",
+        "IRN","IRQ","ISR","JPN","JOR","KAZ","KWT","KGZ","LAO","LBN","MYS","MDV","MNG",
+        "MMR","NPL","PRK","OMN","PAK","PSE","PHL","QAT","SAU","SGP","KOR","LKA","SYR",
+        "TWN","TJK","THA","TLS","TUR","TKM","ARE","UZB","VNM","YEM"
+      ) ~ "Asia",
+
+      country_code %in% c(
+        "ALB","AND","AUT","BLR","BEL","BIH","BGR","HRV","CYP","CZE","DNK","EST","FIN",
+        "FRA","DEU","GRC","HUN","ISL","IRL","ITA","LVA","LIE","LTU","LUX","MLT","MDA",
+        "MCO","MNE","NLD","MKD","NOR","POL","PRT","ROU","RUS","SMR","SRB","SVK","SVN",
+        "ESP","SWE","CHE","UKR","GBR","VAT","GER","ROM"
+      ) ~ "Europe",
+
+      country_code %in% c(
+        "AUS","FJI","KIR","MHL","FSM","NRU","NZL","PLW","PNG","WSM","SLB","TON","TUV",
+        "VUT","NUR"
+      ) ~ "Oceania",
+
+      TRUE ~ NA_character_
+    )
+  ) |> 
+  filter(!is.na(continent))
+```
+
+## Communist countries by Continent
+
+```{r}
+communist_countries <- democracy_data |> 
+  filter(is_communist == TRUE) |> 
+  group_by(country_name, continent) |> 
+  slice(1) |> 
+  ungroup()
+
+communist_summary <- communist_countries |>
+  group_by(continent) |> 
+  summarize(total_communist_countries = n(), .groups = "drop") |> 
+  select(continent, total_communist_countries)
+
+communist_summary |> 
+  kable()
+
+ggplot(communist_summary, aes(x = continent, y = total_communist_countries, fill = continent)) + 
+  geom_col() +
+  scale_fill_brewer(palette = "Set2") + 
+  labs(
+    title = "Number of Countries That Have Been Communist by Continent",
+    x = "Continent",
+    y = "Count"
+  )
+```
+
+
