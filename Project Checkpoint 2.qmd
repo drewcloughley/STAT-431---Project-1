@@ -3,11 +3,16 @@ title: "Project Checkpoint 2"
 format: html
 ---
 
+<<<<<<< HEAD
 ## Context
 
 ```{r}
 library(tidyverse)
 library(kableExtra)
+=======
+```{r}
+library(tidyverse)
+>>>>>>> 813adf5 (Transferred context into Checkpoint 2)
 
 democracy_data <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-11-05/democracy_data.csv')
 
@@ -40,6 +45,7 @@ The data has been cleaned mostly by renaming variables to be more understandable
 -   Are democracies more likely to collapse in regions with higher conflict or instability?
 
 -   Do economic conditions (e.g., GDP per capita, inflation) predict transitions from democracy to dictatorship?
+<<<<<<< HEAD
 
 
 ## Assigning Continent names to each country and filtering out non-countries
@@ -126,3 +132,5 @@ ggplot(communist_summary, aes(x = continent, y = total_communist_countries, fill
 ```
 
 
+=======
+>>>>>>> 813adf5 (Transferred context into Checkpoint 2)
