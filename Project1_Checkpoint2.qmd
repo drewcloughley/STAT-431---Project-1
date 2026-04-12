@@ -1,0 +1,280 @@
+---
+title: "Project 1 Checkpoint 2"
+authors: 
+  - name: "Ian Cay"
+  - name: "Drew Cloughley"
+  - name: "Nico Ragasa"
+format: html
+---
+
+## Data Set Up
+
+```{r}
+#| warning: false
+library(tidyverse)
+library(kableExtra)
+library(knitr)
+
+democracy_data <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-11-05/democracy_data.csv')
+```
+
+## Research Questions of Interest
+
+-   What regime category is the most prevalent among countries in 2020?
+-   Are communist, democratic, or monarchical countries the most prevalent in 2020?
+-   Which continent has the highest proportion of countries that have been communist before?
+
+## Number of Countries (Including Colonies) by Regime Category in 2020
+
+```{r}
+#| results: 'asis'
+
+count_regime_categories <- function(yr) {
+  
+  # Filter by the chosen year
+  regime_data <- democracy_data |> 
+    filter(year == yr, 
+           !is.na(regime_category
+                  )
+           )|> 
+    group_by(regime_category) |> 
+    summarize(number_of_countries = n(), 
+              .groups = "drop"
+              ) |> 
+  select(regime_category, number_of_countries)
+
+  regime_data |>
+    kable() |> 
+    kable_styling() |>
+    print()
+  
+  # Create a bar plot
+  ggplot(regime_data, 
+         aes(x = regime_category, 
+             y = number_of_countries, 
+             fill = regime_category
+             )
+         ) +
+  geom_col() +
+  labs(
+    title = paste("Popularity by Regime in", yr),
+    x = "Regime Category",
+    y = "Number of Countries",
+    fill = "Regime Category"
+    ) + 
+    theme_minimal()
+  
+}
+count_regime_categories(2020)
+  
+```
+
+Parliamentary democracy, civilian dictatorship, and presidential democracy are the most prevalent categories of regimes in 2020.
+
+::: {.callout-note}
+-   We may simplify regime groups to make comparisons easier to interpret.
+-   We can look into how these counts are distributed across different regions.
+:::
+
+## Prevalence of Communism, Monarchies, and Democracies in 2020
+
+```{r}
+#| results: 'asis'
+
+count_political_ideologies <- function(selected_year) {
+  
+  # Filter by the selected year
+  filtered_data <- democracy_data |> filter(year == selected_year)
+  
+  # Iterate over the ideology columns to count TRUE values
+  ideology_cols <- c("is_communist", "is_democracy", "is_monarchy")
+  ideology_cols
+  
+  counts <- map_int(ideology_cols, 
+                    ~ sum(filtered_data[[.x]], 
+                          na.rm = TRUE
+                          )
+                    )
+  
+  # Create a summary 
+  summary_data <- tibble(
+    political_ideology = c("Communism", "Democracy", "Monarchy"),
+    number_of_countries = counts,
+    year = selected_year
+  ) |>
+    group_by(political_ideology) |>
+    summarize(number_of_countries = number_of_countries) 
+  
+  summary_data |> 
+    kable() |> 
+    kable_styling() |> 
+    print()
+  
+  # Create a bar plot
+  ggplot(summary_data, 
+         aes(x = political_ideology, 
+             y = number_of_countries, 
+             fill = political_ideology
+             )
+         ) +
+  geom_col() +
+  labs(
+    title = paste("Popularity of Communism, Democracies, and Monarchies in", selected_year),
+    x = "Political Ideology",
+    y = "Number of Countries",
+    fill = "Political Ideology"
+    ) + 
+    theme_minimal()
+
+}
+
+count_political_ideologies(2020)
+
+```
+
+In 2020, there are 129 democratic countries, but there are only 7 communist countries remaining in 2020. Also, there are 49 monarchical countries.
+
+::: {.callout-note}
+-   Analyzing how these values have changed over time may be interesting.
+-   How are countries in the same ideology group similar?
+:::
+
+## Assigning Continent names to each country and filtering out non-countries
+
+```{r}
+#| results: 'asis'
+
+democracy_data <- democracy_data |> 
+  mutate(
+    continent = case_when(
+      
+      country_code %in% c(
+        "DZA","AGO","BEN","BWA","BFA","BDI","CMR","CPV","CAF","TCD","COM","COG","COD",
+        "CIV","DJI","EGY","GNQ","ERI","SWZ","ETH","GAB","GMB","GHA","GIN","GNB","KEN",
+        "LSO","LBR","LBY","MDG","MWI","MLI","MRT","MUS","MAR","MOZ","NAM","NER","NGA",
+        "RWA","STP","SEN","SYC","SLE","SOM","ZAF","SSD","SDN","TZA","TGO","TUN","UGA",
+        "ZMB","ZWE","ZAR"
+      ) ~ "Africa",
+
+      # North America (incl. Caribbean)
+      country_code %in% c(
+        "CAN","USA","MEX","BHS","BRB","CUB","DMA","DOM","GRD","HTI","JAM",
+        "KNA","LCA","VCT","TTO","ATG"
+      ) ~ "North America",
+
+      # Central America
+      country_code %in% c(
+        "BLZ","CRI","SLV","GTM","HND","NIC","PAN"
+      ) ~ "Central America",
+
+      # South America
+      country_code %in% c(
+        "ARG","BOL","BRA","CHL","COL","ECU","GUY","PRY","PER","SUR","URY","VEN"
+      ) ~ "South America",
+
+      country_code %in% c(
+        "AFG","ARM","AZE","BHR","BGD","BTN","BRN","KHM","CHN","CYP","GEO","IND","IDN",
+        "IRN","IRQ","ISR","JPN","JOR","KAZ","KWT","KGZ","LAO","LBN","MYS","MDV","MNG",
+        "MMR","NPL","PRK","OMN","PAK","PSE","PHL","QAT","SAU","SGP","KOR","LKA","SYR",
+        "TWN","TJK","THA","TLS","TUR","TKM","ARE","UZB","VNM","YEM"
+      ) ~ "Asia",
+
+      country_code %in% c(
+        "ALB","AND","AUT","BLR","BEL","BIH","BGR","HRV","CYP","CZE","DNK","EST","FIN",
+        "FRA","DEU","GRC","HUN","ISL","IRL","ITA","LVA","LIE","LTU","LUX","MLT","MDA",
+        "MCO","MNE","NLD","MKD","NOR","POL","PRT","ROU","RUS","SMR","SRB","SVK","SVN",
+        "ESP","SWE","CHE","UKR","GBR","VAT","GER","ROM"
+      ) ~ "Europe",
+
+      country_code %in% c(
+        "AUS","FJI","KIR","MHL","FSM","NRU","NZL","PLW","PNG","WSM","SLB","TON","TUV",
+        "VUT","NUR"
+      ) ~ "Oceania",
+
+      TRUE ~ NA_character_
+    )
+  ) |> 
+  filter(!is.na(continent))
+```
+
+
+## Communist countries by Continent
+
+```{r}
+#| results: 'asis'
+
+# Filter for all communist countries
+communist_countries <- democracy_data |> 
+  filter(is_communist == TRUE) |> 
+  group_by(country_name, continent) |> 
+  slice(1) |> 
+  ungroup()
+
+# Calculate the total communist countries per continent
+communist_summary <- communist_countries |>
+  group_by(continent) |> 
+  summarize(total_communist_countries = n(), .groups = "drop") |> 
+  select(continent, total_communist_countries)
+
+# View the table
+communist_summary |> 
+  kable() |>
+  kable_styling()
+
+# Plot the counts of communist countries with respect to continent
+ggplot(communist_summary, aes(x = continent, y = total_communist_countries, fill = continent)) + 
+  geom_col() +
+  scale_fill_brewer(palette = "Set2") + 
+  labs(
+    title = "Number of Countries That Have Been Communist by Continent",
+    x = "Continent",
+    y = "Count"
+  )
+```
+
+## Percent of Countries that have been Communist by Continent
+
+```{r}
+#| results: 'asis'
+
+percent_communist <- function(cont){
+  # Filter each distinct country in the given continent
+  # Calculate the percent of those countries that are communist
+  # Return a numeric value 0 < x < 100
+  democracy_data |>
+    filter(continent == cont) |>
+    distinct(country_name, is_communist) |>
+    summarize(pct_communist = mean(is_communist, na.rm = TRUE) * 100) |>
+    pull(pct_communist)
+}
+
+# Store a vector of percent of communist nations per continent
+percents <- democracy_data |>
+  distinct(continent) |>
+  pull(continent) |>
+  map_dbl(percent_communist)
+
+# Create a tibble with continents and their percentage of communist countries
+pct_table <- democracy_data |>
+  distinct(continent) |>
+  mutate(pct_communist = percents)
+
+# View the table
+pct_table |>
+  kable() |>
+  kable_styling()
+
+# Plot the percents of communist countries with respect to continent
+ggplot(pct_table, aes(x = continent, y = pct_communist, fill = continent)) +
+  geom_col() +
+  labs(x = "Continent", y = "Percent Communist",
+       fill = "Continent", title = "Percent of Countries that have been Communist by Continent")
+
+```
+
+Europe, Asia, and Africa have the highest proportion of countries that have been communist.
+
+::: {.callout-note}
+-   We may look into how these percentages varied across time.
+-   Is there a statistically significant difference between continents?
+:::
