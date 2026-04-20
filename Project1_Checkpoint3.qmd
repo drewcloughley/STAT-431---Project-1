@@ -1,0 +1,83 @@
+---
+title: "Project1_Checkpoint3"
+format: html
+---
+
+```{r}
+
+democracy_data <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-11-05/democracy_data.csv')
+countries <- democracy_data |>
+distinct(country_code)
+
+```
+
+```{r}
+#| label: packages-setup
+#| message: false
+#| warning: false
+library(httr)
+library(tidyjson)
+library(jsonlite)
+library(tidyverse)
+```
+
+
+```{r}
+Sys.sleep(20)
+getGDP <- function(countries) {
+  all_results <- list()
+    for (i in countries) {
+      GDP <- GET(
+      "https://api.api-ninjas.com/v1/gdp",
+      query = list(country = i, year = 2020),
+      add_headers("X-Api-Key" = "Co1aNrJSrFjlk3zmHb2jrVqKvyfcBq4wJ5TP3JMo")
+      )
+    my_df <- fromJSON(rawToChar(GDP$content))
+      all_results[[i]] <- my_df
+  }
+    country_df <- bind_rows(all_results)
+      return(country_df)
+}
+
+
+GDP_2020 <- getGDP(countries$country_code)
+write_csv(GDP_2020, "GDP_2020.csv")
+
+```
+
+
+
+```{r}
+GDP_2020 <- read_csv("GDP_2020.csv")
+
+democracy_data_2020 <- democracy_data |> 
+  filter(year == 2020)
+
+GDP_2020 |> 
+  mutate(country_code = country) |> 
+  select(country_code, year:`gdp_ppp_share`)
+
+country_data_2020 <- GDP_2020 |> 
+  left_join(democracy_data_2020, by = c("country_code", "year"))
+
+country_data_2020
+```
+
+
+```{r}
+country_data_2020 <- GDP_2020 |>
+  mutate(country_code = country) |>
+  select(country_code, year:gdp_ppp_share) |>
+  left_join(
+    democracy_data |> filter(year == 2020),
+    by = c("country_code", "year")
+  )
+
+country_data_2020
+
+
+write_csv(country_data_2020, "country_data_2020.csv")
+```
+
+
+
